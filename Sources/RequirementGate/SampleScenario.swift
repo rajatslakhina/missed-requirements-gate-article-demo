@@ -15,8 +15,13 @@ public struct SampleScenario: Sendable, Equatable {
 
 public enum SampleScenarios {
 
-    /// A deliberately ordinary iOS billing ticket: several clauses, one of them buried
-    /// in a coordinated sentence, one conditional, one "should".
+    /// A deliberately ordinary billing ticket (the original task is a NestJS service;
+    /// the shape is what matters here, not the stack): several clauses, one buried in a
+    /// coordinated sentence, one conditional, one "should".
+    ///
+    /// Adapted from the sample billing task published with Real-SWE
+    /// (https://withspecific.com/benchmarks/real-swe), because that task has exactly the
+    /// shape this library exists for — two obligations welded into one sentence.
     public static let ticket = """
     Invoice totals are wrong for business accounts.
 
