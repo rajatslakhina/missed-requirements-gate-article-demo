@@ -157,7 +157,8 @@ six of the ten tasks came in under 15%. "Missed requirement" is the largest fail
 bucket in aggregate, though it leads for only three of the eight configurations.
 <https://withspecific.com/benchmarks/real-swe>
 
-Article: (added after publish)
+Article: [Your Coding Agent Didn't Fail the Ticket. It Only Read Half of One
+Sentence.](https://medium.com/@er.rajatlakhina/your-coding-agent-didnt-fail-the-ticket-it-only-read-half-of-one-sentence-71acfdd5c0fa)
 
 ## Licence
 
