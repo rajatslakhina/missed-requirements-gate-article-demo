@@ -5,10 +5,14 @@ which obligations in the ticket nothing in the diff accounts for.
 
 It exists because of one finding: when frontier coding agents are benchmarked on
 **private, real-world enterprise codebases** rather than public repos, *missed
-requirements* is the most common way they fail — and it is the failure mode a human
-reviewer is worst at catching, because the reviewer is reading the diff, not the ticket.
+requirements* is the biggest single bucket of failures in aggregate — and it is the
+failure mode a human reviewer is worst at catching, because the reviewer is reading the
+diff, not the ticket.
 
 ![One score, one follow-up question, four verdicts: the decision ladder RequirementGate uses to classify each requirement as missed, weak, asserted or covered.](Article/02-verdict-model.png)
+
+The sample ticket in `SampleScenarios` is adapted from one of Real-SWE's own published
+billing tasks, because that task has exactly the shape this library exists for.
 
 ---
 
@@ -19,23 +23,24 @@ as one requirement or two:
 
 ![Side-by-side gate reports. Scored as one requirement the merged clause lands at 37% and the gate passes; split at the comma-and, the unimplemented half scores 14% and the gate fails, naming R4.](Article/03-split-vs-merged.png)
 
-```
+```text
 splitCoordinatedClauses: false
-PASS — 5 requirements: 2 covered, 0 asserted, 2 weak, 1 missed
+PASS — 5 requirements: 2 covered, 0 asserted, 2 weak, 1 missed, 0 unscorable
 [WEAK]   R3 (must, 37%) The rate, the tax and the gross must appear on the issued
                         invoice, and once an invoice is settled the sale must be
                         filed back to the ledger under that invoice number
 
 splitCoordinatedClauses: true
-FAIL — 6 requirements: 3 covered, 0 asserted, 1 weak, 2 missed
+FAIL — 6 requirements: 3 covered, 0 asserted, 1 weak, 2 missed, 0 unscorable
 BLOCKING: 1 required clause(s) have no matching evidence: R4.
 [COVERED] R3 (must, 73%) The rate, the tax and the gross must appear on the issued invoice
 [MISSED]  R4 (must, 14%) once an invoice is settled the sale must be filed back to the
                          ledger under that invoice number
 ```
 
-Averaging two obligations into one score hides the one nobody implemented. That
-behaviour is pinned by a test, so it cannot quietly regress:
+Scoring two obligations as one dilutes the matched terms across both halves and hides
+the one nobody implemented. That behaviour is pinned by a test, so it cannot quietly
+regress:
 `testMergingTheCoordinatedClauseLetsTheGateGoGreenOnAHalfDoneTicket`.
 
 ---
@@ -44,7 +49,7 @@ behaviour is pinned by a test, so it cannot quietly regress:
 
 | Type | What it does |
 | --- | --- |
-| `RequirementExtractor` | Splits ticket prose into atomic requirements. Promotes list items and acceptance criteria unconditionally, prose only on a modal cue, and splits coordinated predicates on `", and"` / `"; and"` / `";"` — never on a bare `" and "`. |
+| `RequirementExtractor` | Splits ticket prose into atomic requirements. Promotes list items and acceptance criteria unconditionally, prose only on a modal cue, and splits coordinated predicates on `", and "` / `"; and "` / `"; "` — never on a bare `" and "`. |
 | `Lexicon` | Tokenises (including camelCase boundaries), stems with five short documented rules, and matches terms by equality or a short prefix with a length-gap guard. |
 | `ChangeSet` / `EvidenceIndex` | Models the change structurally — paths, symbols, test names, doc comments — rather than as raw diff text, and tags each item as `test`, `implementation` or `documentation`. |
 | `CoverageMatcher` | Scores each requirement's terms against the evidence and classifies it `covered` / `asserted` / `weak` / `missed` / `unscorable`. |
@@ -52,10 +57,11 @@ behaviour is pinned by a test, so it cannot quietly regress:
 
 ### The load-bearing decisions
 
-- **Only a test can promote a requirement to `covered`.** A symbol name is an intention;
-  a test name is an executable claim. Strong overlap with implementation-only evidence
-  gets its own verdict, `asserted` — which is the benchmark's "unverified assumption"
-  category, and a different conversation with the author than "you forgot this".
+- **A requirement only reaches `covered` when tests name at least half its terms.** A
+  symbol name is an intention; a test name is an executable claim. Strong overlap backed
+  only by implementation gets its own verdict, `asserted` — this gate's analogue of the
+  benchmark's "unverified assumption" bucket, and a different conversation with the
+  author than "you forgot this".
 - **Clause splitting is deliberately conservative.** A false split invents a requirement
   that gets reported missing forever, which teaches the team to ignore the gate. A false
   merge hides exactly one item. The costs are asymmetric, so the rules are too.
@@ -146,8 +152,10 @@ library underneath it is the part that is tested.
 
 The finding this is built on: **Real-SWE** (Specific Labs, September 2026) — eight
 model-and-harness configurations, ten tasks drawn from private production codebases,
-640 scored rollouts. Top configuration resolved 38.8% of tasks; six of the ten tasks
-came in under 15%. <https://withspecific.com/benchmarks/real-swe>
+640 scored rollouts. Top configuration (Fable 5.1 + Claude Code) resolved 38.8% of tasks;
+six of the ten tasks came in under 15%. "Missed requirement" is the largest failure
+bucket in aggregate, though it leads for only three of the eight configurations.
+<https://withspecific.com/benchmarks/real-swe>
 
 Article: (added after publish)
 
